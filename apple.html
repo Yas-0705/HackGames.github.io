@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Apple — Predictor</title>
+  <meta name="theme-color" content="#0b0f1c" />
+  <style>
+    :root{
+      --bg:#0b0f1c; --panel:#0f1732; --text:#e6eaf5; --muted:#9fb0c9; --p1:#7c3aed; --p2:#06b6d4; --good:#10b981; --accent:#f97316;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{ margin:0; background:linear-gradient(180deg, #0b0f1c 0%, #0a1226 100%); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif; }
+    .wrap{ min-height:100svh; max-width:520px; margin:0 auto; padding:16px 12px 24px; display:flex; flex-direction:column; gap:12px }
+    .top{ display:flex; align-items:center; gap:10px }
+    .back{ width:40px; height:40px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(145deg,#141f3f,#0f1732); color:#cbd5e1; display:grid; place-items:center; cursor:pointer }
+    .title{ font-weight:900; letter-spacing:.4px; font-size:18px }
+
+    .panel{ background:linear-gradient(180deg, rgba(16,23,49,.92), rgba(11,16,32,.9)); border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:14px; position:relative; overflow:hidden; }
+
+    .board{
+      display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; margin-top:6px;
+    }
+    .tile{
+      aspect-ratio: 1 / .6; /* rectangulaire façon bois */
+      border-radius:10px; border:1px solid rgba(0,0,0,.25);
+      background:
+        linear-gradient(180deg, #c88c4a, #b87733 60%, #a9632a),
+        repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 1px, transparent 1px 6px),
+        radial-gradient(60% 80% at 70% 40%, rgba(255,255,255,.18), transparent 60%);
+      box-shadow: inset 0 2px 0 rgba(255,255,255,.2), inset 0 -2px 0 rgba(0,0,0,.2), 0 4px 10px rgba(0,0,0,.25);
+      position:relative; overflow:hidden;
+      transition:transform .12s ease, filter .2s ease, box-shadow .2s ease;
+    }
+    .tile:hover{ transform:translateY(-2px) }
+    .tile.selected{
+      outline:2px solid rgba(249,115,22,.9);
+      box-shadow: 0 6px 16px rgba(249,115,22,.35), inset 0 0 40px rgba(249,115,22,.12);
+      filter:saturate(1.05);
+    }
+    .pulse{
+      position:absolute; inset:-20%; border-radius:16px;
+      background:radial-gradient(40% 40% at 50% 50%, rgba(249,115,22,.25), transparent 70%);
+      animation:ping 1.2s ease-out infinite;
+      pointer-events:none;
+    }
+    @keyframes ping{ from{ transform:scale(.7); opacity:.7 } to{ transform:scale(1.3); opacity:0 } }
+
+    .controls{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px }
+    .run{ flex:1; height:44px; border:none; border-radius:12px; background:linear-gradient(135deg, #f97316, #f59e0b); color:#0b0f1c; font-weight:900; letter-spacing:.2px; box-shadow:0 12px 26px rgba(249,115,22,.35); cursor:pointer; transition:transform .12s ease, opacity .15s ease }
+    .run:active{ transform:translateY(1px) scale(.98) }
+    .meta{ min-width:152px; text-align:right; color:#9fb0c9; font-size:12px }
+    .legend{ margin-top:8px; color:#9fb0c9; font-size:12px; text-align:center }
+    footer{ margin-top:auto; color:#8ea3c5; font-size:12px; text-align:center; opacity:.7 }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <button class="back" onclick="location.href='index.html'">←</button>
+      <div class="title" id="gameTitle">Apple — Chemin</div>
+    </div>
+
+    <section class="panel">
+      <div class="board" id="board"></div>
+      <div class="controls">
+        <button class="run" id="run">Générer le chemin</button>
+        <div class="meta"><span id="metaLabel">Prêt</span> <b id="count">--:--</b></div>
+      </div>
+      <div class="legend">Chemin proposé pour les 3 à 5 premiers étages (de haut en bas). Pause obligatoire après chaque génération.</div>
+    </section>
+
+    <footer>© 2025 Predictor — Site public non affilié. +18.</footer>
+  </div>
+
+  <script>
+    const ROWS=10, COLS=5;
+    const COOL_MIN=30, COOL_MAX=60; // secondes
+    let lockUntil=0, timer=null;
+
+    const qs = new URLSearchParams(location.search);
+    const game = qs.get('game') || 'Apple';
+    document.getElementById('gameTitle').textContent = game + ' — Chemin';
+
+    const boardEl = document.getElementById('board');
+    const runBtn = document.getElementById('run');
+    const countEl = document.getElementById('count');
+    const labelEl = document.getElementById('metaLabel');
+
+    // construire 5 x 10
+    const grid = [];
+    for(let r=0;r<ROWS;r++){
+      grid[r]=[];
+      for(let c=0;c<COLS;c++){
+        const t=document.createElement('div'); t.className='tile';
+        t.addEventListener('click',()=>{ t.style.transform='scale(.98)'; setTimeout(()=>t.style.transform='',100); });
+        boardEl.appendChild(t); grid[r][c]=t;
+      }
+    }
+
+    function pad(n){return String(n).padStart(2,'0')}
+    function format(sec){sec=Math.max(0,sec|0); return pad(Math.floor(sec/60))+':'+pad(sec%60)}
+
+    function clearBoard(){
+      grid.flat().forEach(t=>{ t.classList.remove('selected'); const p=t.querySelector('.pulse'); if(p) p.remove(); });
+    }
+
+    function mark(r,c){
+      const t=grid[r][c];
+      t.classList.add('selected');
+      const pl=document.createElement('div'); pl.className='pulse'; t.appendChild(pl);
+    }
+
+    function startCooldown(){
+      const extra=(COOL_MIN + Math.floor(Math.random()*(COOL_MAX-COOL_MIN+1)))*1000;
+      lockUntil = Date.now() + extra;
+      tick();
+    }
+
+    function tick(){
+      const now=Date.now();
+      if(now<lockUntil){
+        labelEl.textContent='Pause';
+        countEl.textContent = format(Math.ceil((lockUntil-now)/1000));
+        runBtn.disabled = true; runBtn.style.opacity=.6;
+      }else{
+        labelEl.textContent='Prêt';
+        countEl.textContent='--:--';
+        runBtn.disabled=false; runBtn.style.opacity=1;
+      }
+    }
+    timer=setInterval(tick,1000); tick();
+
+    runBtn.addEventListener('click', ()=>{
+      if(runBtn.disabled) return;
+      clearBoard();
+      const depth = 3 + Math.floor(Math.random()*3); // 3..5 premiers étages
+      for(let r=0;r<depth;r++){
+        const c = Math.floor(Math.random()*COLS);
+        mark(r,c);
+      }
+      startCooldown();
+    });
+  </script>
+</body>
+</html>
