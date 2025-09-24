@@ -3,34 +3,22 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Grille — Predictor</title>
+  <title>Mines — Predictor</title>
   <meta name="theme-color" content="#0b0f1c" />
   <style>
     :root{
-      --bg:#0b0f1c; --panel:#0f1732; --text:#e6eaf5; --muted:#9fb0c9;
-      --p1:#7c3aed; --p2:#06b6d4; --good:#10b981;
+      --bg:#0b0f1c; --panel:#0f1732; --text:#e6eaf5; --muted:#9fb0c9; --p1:#7c3aed; --p2:#06b6d4; --good:#10b981;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{
-      margin:0; background:linear-gradient(180deg, #0b0f1c 0%, #0a1226 100%);
-      color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;
-    }
+    body{ margin:0; background:linear-gradient(180deg, #0b0f1c 0%, #0a1226 100%); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif; }
     .wrap{ min-height:100svh; max-width:520px; margin:0 auto; padding:16px 12px 24px; display:flex; flex-direction:column; gap:12px }
     .top{ display:flex; align-items:center; gap:10px }
-    .back{
-      width:40px; height:40px; border-radius:12px; border:1px solid rgba(255,255,255,.08);
-      background:linear-gradient(145deg,#141f3f,#0f1732); color:#cbd5e1; display:grid; place-items:center; cursor:pointer;
-    }
+    .back{ width:40px; height:40px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(145deg,#141f3f,#0f1732); color:#cbd5e1; display:grid; place-items:center; cursor:pointer; }
     .title{ font-weight:900; letter-spacing:.4px; font-size:18px }
 
-    .panel{
-      background:linear-gradient(180deg, rgba(16,23,49,.92), rgba(11,16,32,.9));
-      border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:14px; position:relative; overflow:hidden;
-    }
-    .grid{
-      display:grid; grid-template-columns:repeat(5, 1fr); gap:8px; margin-top:6px;
-    }
+    .panel{ background:linear-gradient(180deg, rgba(16,23,49,.92), rgba(11,16,32,.9)); border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:14px; position:relative; overflow:hidden; }
+    .grid{ display:grid; grid-template-columns:repeat(5, 1fr); gap:8px; margin-top:6px }
     .cell{
       aspect-ratio:1/1; border-radius:10px; border:1px solid rgba(255,255,255,.06);
       background:linear-gradient(145deg,#19234a,#0f1732);
@@ -38,32 +26,18 @@
       transition:transform .12s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease;
     }
     .cell:hover{ transform:translateY(-2px) }
-    .cell.selected{
-      border-color:rgba(124,58,237,.7);
-      box-shadow:0 6px 18px rgba(124,58,237,.25), inset 0 0 40px rgba(124,58,237,.14);
-      background:linear-gradient(145deg,#20195a,#12204a);
-    }
-    .mark{
-      width:56%; height:56%; border-radius:16%; background:conic-gradient(from 180deg, #7c3aed, #06b6d4, #7c3aed);
-      box-shadow:0 6px 14px rgba(6,182,212,.28);
-      animation:pop .22s ease;
-    }
+    .cell.selected{ border-color:rgba(124,58,237,.7); box-shadow:0 6px 18px rgba(124,58,237,.25), inset 0 0 40px rgba(124,58,237,.14); background:linear-gradient(145deg,#20195a,#12204a) }
+    .mark{ width:56%; height:56%; border-radius:16%; background:conic-gradient(from 180deg, #7c3aed, #06b6d4, #7c3aed); box-shadow:0 6px 14px rgba(6,182,212,.28); animation:pop .22s ease }
     @keyframes pop{ from{ transform:scale(.4); opacity:.3 } to{ transform:scale(1); opacity:1 } }
+
     .controls{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px }
-    .counter{
-      display:flex; align-items:center; gap:10px; background:#0e1530; padding:8px; border-radius:12px; border:1px solid rgba(255,255,255,.06);
-    }
-    .ctr-btn{
-      width:40px; height:36px; border:none; border-radius:10px; background:linear-gradient(145deg,#15214a,#0f1732);
-      color:#c7d2fe; font-weight:900; cursor:pointer;
-    }
+    .counter{ display:flex; align-items:center; gap:10px; background:#0e1530; padding:8px; border-radius:12px; border:1px solid rgba(255,255,255,.06) }
+    .ctr-btn{ width:40px; height:36px; border:none; border-radius:10px; background:linear-gradient(145deg,#15214a,#0f1732); color:#c7d2fe; font-weight:900; cursor:pointer }
     .ctr-val{ width:44px; text-align:center; font-weight:900 }
-    .run{
-      flex:1; height:44px; border:none; border-radius:12px; background:linear-gradient(135deg, #06b6d4, #7c3aed);
-      color:#0b0f1c; font-weight:900; letter-spacing:.2px; box-shadow:0 12px 26px rgba(6,182,212,.35); cursor:pointer;
-      transition:transform .12s ease;
-    }
+    .run{ flex:1; height:44px; border:none; border-radius:12px; background:linear-gradient(135deg, #06b6d4, #7c3aed); color:#0b0f1c; font-weight:900; letter-spacing:.2px; box-shadow:0 12px 26px rgba(6,182,212,.35); cursor:pointer; transition:transform .12s ease, opacity .15s ease }
     .run:active{ transform:translateY(1px) scale(.98) }
+    .meta{ min-width:140px; text-align:right; color:#9fb0c9; font-size:12px }
+
     .hint{ text-align:center; color:#8aa0c7; font-size:12px; margin-top:8px }
     footer{ margin-top:auto; color:#8ea3c5; font-size:12px; text-align:center; opacity:.7 }
   </style>
@@ -77,7 +51,6 @@
 
     <section class="panel">
       <div class="grid" id="grid"></div>
-
       <div class="controls">
         <div class="counter">
           <button class="ctr-btn" id="dec">−</button>
@@ -85,9 +58,9 @@
           <button class="ctr-btn" id="inc">+</button>
         </div>
         <button class="run" id="run">Lancer</button>
+        <div class="meta"><span id="metaLabel">Prêt</span> <b id="count">--:--</b></div>
       </div>
-
-      <div class="hint">Grille animée, marqueurs dégradés, transitions fluides. Retour → Accueil en haut à gauche.</div>
+      <div class="hint">Pause obligatoire après chaque génération. Retour → Accueil en haut à gauche.</div>
     </section>
 
     <footer>© 2025 Predictor — Site public non affilié. +18.</footer>
@@ -98,61 +71,78 @@
     const game = qs.get('game') || 'Mines';
     document.getElementById('gameTitle').textContent = game + ' — Grille';
 
+    const COOL_MIN = 30, COOL_MAX = 60; // secondes
+    let lockUntil = 0, timer = null;
+
     const gridEl = document.getElementById('grid');
     const inc = document.getElementById('inc');
     const dec = document.getElementById('dec');
     const val = document.getElementById('val');
     const run = document.getElementById('run');
+    const countEl = document.getElementById('count');
+    const metaLabel = document.getElementById('metaLabel');
 
     // Génération 5x5
     const cells = [];
     for(let i=0;i<25;i++){
       const c = document.createElement('div');
       c.className = 'cell';
-      c.addEventListener('click', ()=>{
-        c.style.transform='scale(.98)'; setTimeout(()=>c.style.transform='', 100);
-      });
+      c.addEventListener('click', ()=>{ c.style.transform='scale(.98)'; setTimeout(()=>c.style.transform='', 100); });
       gridEl.appendChild(c); cells.push(c);
     }
 
     let count = 5;
-    function setCount(n){
-      count = Math.max(0, Math.min(25, n));
-      val.textContent = count;
-      val.style.transform = 'scale(1.18)';
-      setTimeout(()=> val.style.transform = '', 140);
-    }
+    function setCount(n){ count = Math.max(0, Math.min(25, n)); val.textContent = count; val.style.transform='scale(1.18)'; setTimeout(()=>val.style.transform='', 140); }
     inc.addEventListener('click', ()=> setCount(count+1));
     dec.addEventListener('click', ()=> setCount(count-1));
 
-    function reset(){
-      cells.forEach(c=>{ c.classList.remove('selected'); c.innerHTML=''; });
-    }
+    function reset(){ cells.forEach(c=>{ c.classList.remove('selected'); c.innerHTML=''; }); }
     function particles(cell){
-      const r = cell.getBoundingClientRect();
-      const cx = r.left + r.width/2, cy = r.top + r.height/2;
+      const r = cell.getBoundingClientRect(); const cx=r.left+r.width/2, cy=r.top+r.height/2;
       for(let i=0;i<10;i++){
         const d = document.createElement('div');
         d.style.position='fixed'; d.style.left=cx+'px'; d.style.top=cy+'px';
         d.style.width='4px'; d.style.height='4px'; d.style.borderRadius='50%';
-        d.style.background = `hsl(${200+Math.random()*80},85%,68%)`; d.style.pointerEvents='none'; d.style.zIndex='999';
+        d.style.background=`hsl(${200+Math.random()*80},85%,68%)`; d.style.pointerEvents='none'; d.style.zIndex='999';
         document.body.appendChild(d);
-        const ang = Math.random()*Math.PI*2, dist = 30+Math.random()*50;
+        const ang=Math.random()*Math.PI*2, dist=30+Math.random()*50;
         d.animate([{transform:'translate(0,0)',opacity:1},{transform:`translate(${Math.cos(ang)*dist}px,${Math.sin(ang)*dist}px)`,opacity:0}],{duration:700,easing:'cubic-bezier(.2,.8,.2,1)'});
         setTimeout(()=> d.remove(), 720);
       }
     }
+
+    function pad(n){ return String(n).padStart(2,'0'); }
+    function format(sec){ sec=Math.max(0,sec|0); return pad(Math.floor(sec/60))+':'+pad(sec%60); }
+
+    function tick(){
+      const now=Date.now();
+      if(now < lockUntil){
+        metaLabel.textContent='Pause';
+        countEl.textContent = format(Math.ceil((lockUntil-now)/1000));
+        run.disabled = true; run.style.opacity=.6;
+      }else{
+        metaLabel.textContent='Prêt';
+        countEl.textContent='--:--';
+        run.disabled = false; run.style.opacity=1;
+      }
+    }
+    timer = setInterval(tick, 1000); tick();
+
     run.addEventListener('click', ()=>{
+      if(run.disabled) return;
       run.style.transform='scale(.98)'; setTimeout(()=>run.style.transform='', 100);
       reset();
       const pool=[...cells];
       for(let i=0;i<count;i++){
-        const idx = Math.floor(Math.random()*pool.length);
-        const cell = pool.splice(idx,1)[0];
+        const idx=Math.floor(Math.random()*pool.length);
+        const cell=pool.splice(idx,1)[0];
         cell.classList.add('selected');
-        const mark = document.createElement('div'); mark.className='mark'; cell.appendChild(mark);
+        const mark=document.createElement('div'); mark.className='mark'; cell.appendChild(mark);
         particles(cell);
       }
+      // cooldown
+      const extra=(COOL_MIN + Math.floor(Math.random()*(COOL_MAX-COOL_MIN+1)))*1000;
+      lockUntil = Date.now() + extra; tick();
     });
   </script>
 </body>
