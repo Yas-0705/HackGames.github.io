@@ -15,7 +15,6 @@
     body{
       margin:0; background:linear-gradient(180deg, #0b0f1c 0%, #0a1226 100%); color:var(--text);
       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
     }
     .app{ min-height:100svh; max-width:520px; margin:0 auto; padding:10px 12px 24px; display:flex; flex-direction:column; gap:14px }
     header{
@@ -35,18 +34,17 @@
       width:100%; height:42px; border-radius:12px; border:1px solid rgba(255,255,255,.08);
       background:#0f1732; color:#e6eaf5; padding:0 12px; font-size:14px; outline:none;
     }
+
     .grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:14px; margin-top:8px }
     .item{ text-decoration:none; color:inherit }
     .thumb{
       width:100%; aspect-ratio:16/10; border-radius:14px; overflow:hidden;
-      border:1px solid rgba(255,255,255,.06); background:#0f1732; position:relative;
-      box-shadow:0 8px 18px rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.06); background:#0f1732; position:relative; box-shadow:0 8px 18px rgba(0,0,0,.25);
     }
-    .thumb img{
-      width:100%; height:100%; object-fit:cover; display:block; transform:scale(1.01);
-    }
+    .thumb img{ width:100%; height:100%; object-fit:cover; display:block; transform:scale(1.01) }
     .name{ margin-top:8px; font-weight:800; font-size:14px; text-align:center; color:#d9e1f2 }
-    footer{ margin-top:auto; color:var(--muted); font-size:12px; text-align:center; opacity:.7; padding-top:10px }
+
+    footer{ margin-top:auto; color:#9fb0c9; font-size:12px; text-align:center; opacity:.75; padding-top:10px }
   </style>
 </head>
 <body>
@@ -65,27 +63,27 @@
 
     <section class="grid" id="grid"></section>
 
-    <!-- <footer>© 2025 Predictor — Site public non affilié aux marques mentionnées. +18.</footer> -->
+    <footer>© 2025 Predictor — Site public non affilié aux marques mentionnées. +18.</footer>
   </div>
 
   <script>
-    // 1) Mets ici tes URL d’images
-    const aviatorImg = 'https://criticalhits.com.br/wp-content/uploads/2023/06/imagem-destaque-logo-aviator-696x348.webp';
-    const minesImg   = 'https://imgproxy.v1.bundlecdn.com/unsafe/casino_list_big_1x/plain/https://v1.bundlecdn.com/casino-images/1play/41025403-904f-4680-953d-db150df7a251_horizontal.png';
-    const luckyImg   = 'REPLACE_WITH_OPTIONAL_LUCKYJET_IMAGE_URL';
+    // Remplace ces URLs par tes images
+    const IMAGES = {
+      aviator: 'https://criticalhits.com.br/wp-content/uploads/2023/06/imagem-destaque-logo-aviator-696x348.webp',
+      mines:   'https://imgproxy.v1.bundlecdn.com/unsafe/casino_list_big_1x/plain/https://v1.bundlecdn.com/casino-images/1play/41025403-904f-4680-953d-db150df7a251_horizontal.png',
+      apple:   'REPLACE_WITH_YOUR_APPLE_IMAGE_URL',
+    };
 
-    // 2) Catalogue
     const GAMES = [
-    //   { name:'Lucky Jet', slug:'lucky-jet crash', href:'crash.html?game=Lucky%20Jet', img:luckyImg || '', fallback:'#1d4ed8' },
-      { name:'Aviator',   slug:'aviator crash',   href:'crash.html?game=Aviator',    img:aviatorImg, fallback:'#ef4444' },
-      { name:'Mines',     slug:'mines minesbb',   href:'grid.html?game=Mines',       img:minesImg,   fallback:'#22c55e' },
-      { name:'Bientôt',   slug:'soon',            href:'javascript:void(0)',         img:'',         fallback:'#475569' },
+      { name:'Aviator',   slug:'aviator crash',   href:'crash.html?game=Aviator',    img:IMAGES.aviator, fallback:'#ef4444' },
+      { name:'Mines',     slug:'mines minesbb',   href:'grid.html?game=Mines',       img:IMAGES.mines,   fallback:'#22c55e' },
+      { name:'Apple',     slug:'apple fortune',   href:'apple.html?game=Apple',      img:IMAGES.apple,   fallback:'#f97316' },
     ];
 
     const grid = document.getElementById('grid');
     const items = [];
 
-    function createCard({name, slug, href, img, fallback}){
+    function card({name, slug, href, img, fallback}){
       const a = document.createElement('a');
       a.className = 'item';
       a.dataset.title = slug.toLowerCase();
@@ -96,45 +94,31 @@
 
       if(img){
         const im = document.createElement('img');
-        im.src = img;
-        im.alt = name;
-        im.loading = 'lazy';
-        im.decoding = 'async';
+        im.src = img; im.alt = name; im.loading='lazy'; im.decoding='async';
         im.onerror = () => { th.style.background = fallback; im.remove(); };
         th.appendChild(im);
       }else{
         th.style.background = fallback;
-        a.addEventListener('click', (e)=>{ e.preventDefault(); alert('Bientôt disponible'); });
       }
 
-      const nameEl = document.createElement('div');
-      nameEl.className = 'name';
-      nameEl.textContent = name;
+      const nm = document.createElement('div'); nm.className = 'name'; nm.textContent = name;
 
-      a.appendChild(th);
-      a.appendChild(nameEl);
+      a.appendChild(th); a.appendChild(nm);
       return a;
     }
 
-    GAMES.forEach(g => {
-      const card = createCard(g);
-      grid.appendChild(card);
-      items.push(card);
-    });
+    GAMES.forEach(g => { const el = card(g); grid.appendChild(el); items.push(el); });
 
     // Recherche
     const btn = document.getElementById('btnSearch');
     const wrap = document.getElementById('searchWrap');
     const input = document.getElementById('search');
-    btn.addEventListener('click', ()=> {
-      wrap.classList.toggle('active');
-      if(wrap.classList.contains('active')) setTimeout(()=>input.focus(),10);
-    });
+    btn.addEventListener('click', ()=>{ wrap.classList.toggle('active'); if(wrap.classList.contains('active')) setTimeout(()=>input.focus(),10); });
     input.addEventListener('input', ()=>{
       const q = input.value.toLowerCase().trim();
-      items.forEach(it => {
-        const ok = it.dataset.title.includes(q) || it.querySelector('.name').textContent.toLowerCase().includes(q);
-        it.style.display = ok ? '' : 'none';
+      items.forEach(it=>{
+        const text = (it.dataset.title + ' ' + it.querySelector('.name').textContent).toLowerCase();
+        it.style.display = text.includes(q) ? '' : 'none';
       });
     });
   </script>
